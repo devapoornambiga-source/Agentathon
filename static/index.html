@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Autonomous Invoice Processing Agent — AI Ingestion, Validation & Tracking</title>
+  <meta name="description" content="AI-powered autonomous invoice processing agent that ingests invoices, extracts structured data, validates math, detects duplicates and fraud, and tracks due dates.">
+  
+  <!-- Modern Typography from Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+  <div class="container">
+    <!-- Header -->
+    <header class="header" role="banner">
+      <div class="logo-area">
+        <div class="logo-icon" aria-hidden="true">⚡</div>
+        <div class="logo-text">
+          <h1 id="app-heading">Autonomous Invoice Processing Agent</h1>
+          <p>End-to-end document understanding, arithmetic validation, duplicate & fraud defense</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <div class="status-beacon" title="Agent Pipeline Active">
+          <span class="beacon-dot"></span>
+          <span>Orchestrator Active</span>
+        </div>
+        <a href="/api/export/csv" class="btn btn-outline" id="export-csv-btn">
+          📥 Export CSV
+        </a>
+      </div>
+    </header>
+
+    <!-- KPI Highlights Bar -->
+    <section class="kpi-grid" aria-label="Key Performance Indicators">
+      <div class="kpi-card" id="kpi-card-total">
+        <div class="kpi-title">Total Invoices Processed</div>
+        <div class="kpi-value" id="kpi-total-count">0</div>
+        <div class="kpi-sub" id="kpi-total-amount">₹0.00 cumulative spend</div>
+      </div>
+
+      <div class="kpi-card emerald" id="kpi-card-verified">
+        <div class="kpi-title">Verified Invoices</div>
+        <div class="kpi-value" id="kpi-verified-count">0</div>
+        <div class="kpi-sub">Arithmetic & data checks passed</div>
+      </div>
+
+      <div class="kpi-card amber" id="kpi-card-duplicates">
+        <div class="kpi-title">Duplicates Blocked</div>
+        <div class="kpi-value" id="kpi-duplicate-count">0</div>
+        <div class="kpi-sub">Exact hash & composite matches</div>
+      </div>
+
+      <div class="kpi-card rose" id="kpi-card-fraud">
+        <div class="kpi-title">Fraud Risks Flagged</div>
+        <div class="kpi-value" id="kpi-fraud-count">0</div>
+        <div class="kpi-sub">Vendor bank account mismatches</div>
+      </div>
+
+      <div class="kpi-card purple" id="kpi-card-overdue">
+        <div class="kpi-title">Overdue / Action Needed</div>
+        <div class="kpi-value" id="kpi-overdue-count">0</div>
+        <div class="kpi-sub">Past payment deadlines</div>
+      </div>
+    </section>
+
+    <!-- Main Dual-Pane Studio -->
+    <main class="studio-grid">
+      <!-- Left: Ingestion Hub & Demo Flow Buttons -->
+      <section class="studio-card" id="ingestion-section">
+        <div class="card-title">
+          <span>Ingestion Hub</span>
+          <span style="font-size: 0.8rem; color: var(--accent-cyan); font-weight: 500;">PDF / JPG / PNG</span>
+        </div>
+        <p class="card-desc">Drop an invoice or select one of the pre-configured PRD demo flows below.</p>
+
+        <!-- Dropzone -->
+        <div class="dropzone" id="dropzone" role="region" aria-label="File Upload Dropzone">
+          <input type="file" id="file-input" class="file-input" accept=".pdf,.png,.jpg,.jpeg,.txt">
+          <div class="dropzone-icon" id="dropzone-icon">📄</div>
+          <div class="dropzone-text">Click to upload or drag & drop invoice file</div>
+          <div class="dropzone-hint">Supports PDF documents and scanned invoices</div>
+          <div id="upload-progress" style="display: none; margin-top: 15px;">
+            <div class="spinner"></div>
+            <p style="font-size: 0.82rem; margin-top: 6px; color: var(--accent-cyan);">Running Document Understanding & Validation Pipeline...</p>
+          </div>
+        </div>
+
+        <!-- PRD Section 15 Demo Scenarios -->
+        <div class="scenarios-box">
+          <div class="scenarios-title">
+            <span>Hackathon Demo Flow (PRD Section 15)</span>
+            <span style="font-size: 0.75rem; color: var(--accent-indigo);">1-Click Run</span>
+          </div>
+
+          <div class="scenarios-grid" id="scenarios-list">
+            <!-- Populated dynamically by app.js -->
+            <button class="scenario-btn" onclick="runSample('1_valid_invoice_1024.pdf')">
+              <div class="scenario-info">
+                <span style="font-size: 1.2rem;">🟢</span>
+                <div>
+                  <div style="font-weight: 600; font-size: 0.88rem;">1. PRD Benchmark (INV-1024)</div>
+                  <div style="font-size: 0.76rem; color: var(--text-secondary);">₹84,500 due 30 Sept 2026 (Verified)</div>
+                </div>
+              </div>
+              <span class="scenario-badge badge-verified">Clean Match</span>
+            </button>
+
+            <button class="scenario-btn" onclick="runSample('1_valid_invoice_1024.pdf')">
+              <div class="scenario-info">
+                <span style="font-size: 1.2rem;">🔁</span>
+                <div>
+                  <div style="font-weight: 600; font-size: 0.88rem;">2. Re-upload Same Invoice</div>
+                  <div style="font-size: 0.76rem; color: var(--text-secondary);">Triggers duplicate submission detection</div>
+                </div>
+              </div>
+              <span class="scenario-badge badge-duplicate">Duplicate Check</span>
+            </button>
+
+            <button class="scenario-btn" onclick="runSample('2_tax_mismatch_invoice.pdf')">
+              <div class="scenario-info">
+                <span style="font-size: 1.2rem;">⚠️</span>
+                <div>
+                  <div style="font-weight: 600; font-size: 0.88rem;">3. Arithmetic Tax Mismatch</div>
+                  <div style="font-size: 0.76rem; color: var(--text-secondary);">50k + 9k tax != 65k total stated</div>
+                </div>
+              </div>
+              <span class="scenario-badge badge-mismatch">Math Mismatch</span>
+            </button>
+
+            <button class="scenario-btn" onclick="runSample('3_fraud_bank_mismatch.pdf')">
+              <div class="scenario-info">
+                <span style="font-size: 1.2rem;">🚨</span>
+                <div>
+                  <div style="font-weight: 600; font-size: 0.88rem;">4. Vendor Bank Fraud Risk</div>
+                  <div style="font-size: 0.76rem; color: var(--text-secondary);">Altered bank account for ABC Suppliers</div>
+                </div>
+              </div>
+              <span class="scenario-badge badge-fraud">Fraud Risk</span>
+            </button>
+
+            <button class="scenario-btn" onclick="runSample('4_overdue_invoice.pdf')">
+              <div class="scenario-info">
+                <span style="font-size: 1.2rem;">⏰</span>
+                <div>
+                  <div style="font-weight: 600; font-size: 0.88rem;">5. Overdue Payment Tracking</div>
+                  <div style="font-size: 0.76rem; color: var(--text-secondary);">Due date 05 Sept 2026 (Past due)</div>
+                </div>
+              </div>
+              <span class="scenario-badge badge-overdue">Overdue</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right: Live Agent Inspection & Section 9 Output -->
+      <section class="studio-card" id="inspection-section">
+        <div class="card-title">
+          <span>Live Agent Diagnostics & Output</span>
+          <span id="active-status-badge" class="scenario-badge badge-verified">Ready</span>
+        </div>
+        <p class="card-desc">Extracted data, validation results, and clean PRD Section 9 summary view.</p>
+
+        <!-- Tabs -->
+        <div class="tabs-nav" role="tablist">
+          <button class="tab-btn active" onclick="switchTab('tab-summary')" id="btn-tab-summary">PRD Summary (Sec. 9)</button>
+          <button class="tab-btn" onclick="switchTab('tab-details')" id="btn-tab-details">Extracted Fields</button>
+          <button class="tab-btn" onclick="switchTab('tab-items')" id="btn-tab-items">Line Items</button>
+          <button class="tab-btn" onclick="switchTab('tab-json')" id="btn-tab-json">Structured JSON</button>
+        </div>
+
+        <!-- Alert Area for Errors or Fraud Warnings -->
+        <div id="alert-container"></div>
+
+        <!-- Tab 1: PRD Summary View (Section 9) -->
+        <div class="tab-content active" id="tab-summary">
+          <div class="summary-box" id="summary-box-content">
+Vendor: Waiting for invoice upload...
+Invoice: —
+Amount: —
+Due: —
+Status: Pending Ingestion
+Duplicate: —
+Payment: —
+          </div>
+          <button class="summary-copy-btn" onclick="copySummary()" id="copy-summary-btn">📋 Copy Summary</button>
+        </div>
+
+        <!-- Tab 2: Extracted Fields -->
+        <div class="tab-content" id="tab-details">
+          <div class="kv-grid">
+            <div class="kv-item">
+              <div class="kv-label">Vendor Name</div>
+              <div class="kv-value" id="detail-vendor">—</div>
+            </div>
+            <div class="kv-item">
+              <div class="kv-label">Invoice Number</div>
+              <div class="kv-value" id="detail-invoice-num">—</div>
+            </div>
+            <div class="kv-item">
+              <div class="kv-label">Invoice Date</div>
+              <div class="kv-value" id="detail-date">—</div>
+            </div>
+            <div class="kv-item">
+              <div class="kv-label">Due Date</div>
+              <div class="kv-value" id="detail-due-date">—</div>
+            </div>
+            <div class="kv-item">
+              <div class="kv-label">Subtotal</div>
+              <div class="kv-value" id="detail-subtotal">—</div>
+            </div>
+            <div class="kv-item">
+              <div class="kv-label">Tax Amount</div>
+              <div class="kv-value" id="detail-tax">—</div>
+            </div>
+            <div class="kv-item">
+              <div class="kv-label">Total Amount</div>
+              <div class="kv-value" id="detail-total" style="color: var(--accent-cyan); font-size: 1.1rem;">—</div>
+            </div>
+            <div class="kv-item">
+              <div class="kv-label">Bank Account & IFSC</div>
+              <div class="kv-value" id="detail-bank" style="font-size: 0.85rem;">—</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 3: Line Items -->
+        <div class="tab-content" id="tab-items">
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Description</th>
+                  <th>Quantity</th>
+                  <th>Unit Price</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody id="line-items-tbody">
+                <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">No line items loaded</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab 4: JSON Schema View -->
+        <div class="tab-content" id="tab-json">
+          <pre class="json-viewer" id="json-viewer-content">// Structured JSON according to PRD Section 7 will appear here</pre>
+        </div>
+      </section>
+    </main>
+
+    <!-- Invoices Ledger & Due Date Monitor -->
+    <section class="ledger-card" id="ledger-section">
+      <div class="card-title">
+        <span>Invoices Ledger & Due Date Monitor</span>
+        <span style="font-size: 0.82rem; color: var(--text-secondary); font-weight: 400;">Real-time database records</span>
+      </div>
+      <p class="card-desc">Track payment schedules, verify status, and audit processed invoices.</p>
+
+      <div class="ledger-controls">
+        <div class="filter-pills" role="tablist">
+          <button class="filter-pill active" onclick="setFilter('all')">All</button>
+          <button class="filter-pill" onclick="setFilter('verified')">Verified</button>
+          <button class="filter-pill" onclick="setFilter('mismatch')">Math Mismatch</button>
+          <button class="filter-pill" onclick="setFilter('duplicate')">Duplicates</button>
+          <button class="filter-pill" onclick="setFilter('fraud')">Fraud Risks</button>
+          <button class="filter-pill" onclick="setFilter('overdue')">Overdue</button>
+          <button class="filter-pill" onclick="setFilter('paid')">Paid</button>
+        </div>
+        <input type="text" id="search-input" class="search-input" placeholder="🔍 Search vendor or invoice #..." oninput="handleSearch()">
+      </div>
+
+      <div class="table-responsive">
+        <table class="data-table" id="invoices-table">
+          <thead>
+            <tr>
+              <th>Vendor & File</th>
+              <th>Invoice # & Date</th>
+              <th>Due Date & Countdown</th>
+              <th>Total Amount</th>
+              <th>Validation</th>
+              <th>Security Status</th>
+              <th>Payment Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="invoices-tbody">
+            <tr><td colspan="8" style="text-align: center; padding: 24px; color: var(--text-muted);">Loading invoices ledger...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
